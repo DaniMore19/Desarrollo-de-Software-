@@ -23,8 +23,9 @@ function validarApiKey(req, url) {
   const apiKeyHeader = req.headers['x-api-key'];
   const apiKeyQuery = url.searchParams.get('apiKey');
 
-  const apiKey = apiKeyHeader || apiKeyQuery;
 
+  const apiKey = apiKeyHeader || apiKeyQuery;
+  
   return Object.values(apiKeys).includes(apiKey);
 }
 async function fetchHolidays(country = 'US', year = new Date().getFullYear()) {
@@ -41,13 +42,13 @@ async function fetchHolidays(country = 'US', year = new Date().getFullYear()) {
 }
 
 const servidor = http.createServer((req, res) => {
-  if (!validarApiKey(req)) {
+  const url = new URL(req.url, `http://${req.headers.host}`);
+
+  if (!validarApiKey(req, url)) {
     res.writeHead(401, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'API key inválida o ausente' }));
     return;
   }
-
-  const url = new URL(req.url, `http://${req.headers.host}`);
 
   if (req.method === 'GET' && url.pathname === '/holidays') {
     const country = url.searchParams.get('country') || 'US';
