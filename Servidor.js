@@ -19,11 +19,14 @@ const usuarios = [
   { id: 8, nombre: 'Elena Fernández', email: 'elena@example.com', edad: 26 },
 ];
 
-function validarApiKey(req) {
-  const apiKey = req.headers['x-api-key'];
+function validarApiKey(req, url) {
+  const apiKeyHeader = req.headers['x-api-key'];
+  const apiKeyQuery = url.searchParams.get('apiKey');
+
+  const apiKey = apiKeyHeader || apiKeyQuery;
+
   return Object.values(apiKeys).includes(apiKey);
 }
-
 async function fetchHolidays(country = 'US', year = new Date().getFullYear()) {
   const url = new URL('https://calendarific.com/api/v2/holidays');
   url.searchParams.set('api_key', CALENDARIFIC_API_KEY);
