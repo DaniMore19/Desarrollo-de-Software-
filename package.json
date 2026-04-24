@@ -1,0 +1,14 @@
+{
+  "name": "serbidor",
+  "version": "1.0.0",
+  "description": "",
+  "main": "Servidor.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "porfa": "node Servidor.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module"
+}
