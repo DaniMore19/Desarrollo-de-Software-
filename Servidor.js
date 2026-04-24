@@ -192,7 +192,7 @@ const servidor = http.createServer((req, res) => {
   res.end(JSON.stringify({ error: 'Ruta no encontrada' }));
 });
 
-const puerto = 1999; ;
+const puerto = process.env.PORT || 1999;
 servidor.listen(puerto, () => {
   console.log(`Servidor escuchando en el puerto ${puerto}`);
 });
