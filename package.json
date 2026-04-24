@@ -4,8 +4,7 @@
   "description": "",
   "main": "Servidor.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "porfa": "node Servidor.js"
+    "start": "node Servidor.js"
   },
   "keywords": [],
   "author": "",
