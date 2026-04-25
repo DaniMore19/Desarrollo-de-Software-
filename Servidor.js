@@ -1,11 +1,30 @@
 import http from 'http';
 import { URL } from 'url';
+import fs from 'fs';
+import path from 'path';
+
+// Leer variables de entorno desde .env
+const envPath = path.join(process.cwd(), '.env');
+let envContent = '';
+try {
+  envContent = fs.readFileSync(envPath, 'utf8');
+} catch (error) {
+  console.log('No se pudo leer .env, usando valores por defecto');
+}
+
+const envVars = {};
+envContent.split('\n').forEach(line => {
+  const [key, value] = line.split('=');
+  if (key && value) {
+    envVars[key.trim()] = value.trim();
+  }
+});
 
 const apiKeys = {
-  daniel: 'uX0sI4XNZuQFfqiHVbQhvVTxkmf2oqfr',
+  daniel: 'xZB4vDywABN4DlWjWMdXcQPgmTrvPwDX',
 };
 
-const CALENDARIFIC_API_KEY = process.env.CALENDARIFIC_API_KEY || 'uX0sI4XNZuQFfqiHVbQhvVTxkmf2oqfr';
+const OPENWEATHER_API_KEY = envVars.OPENWEATHER_API_KEY || 'a22e50b3f75bba0c883290d3e58e3668';
 
 // Base de datos de usuarios de ejemplo
 const usuarios = [
@@ -28,15 +47,18 @@ function validarApiKey(req, url) {
   
   return Object.values(apiKeys).includes(apiKey);
 }
-async function fetchHolidays(country = 'US', year = new Date().getFullYear()) {
-  const url = new URL('https://calendarific.com/api/v2/holidays');
-  url.searchParams.set('api_key', CALENDARIFIC_API_KEY);
-  url.searchParams.set('country', country);
-  url.searchParams.set('year', String(year));
+async function fetchWeather(lat = 40.4165, lon = -3.7026, exclude = 'minutely,hourly') {
+  const url = new URL('https://api.openweathermap.org/data/3.0/onecall');
+  url.searchParams.set('lat', String(lat));
+  url.searchParams.set('lon', String(lon));
+  url.searchParams.set('exclude', exclude);
+  url.searchParams.set('appid', OPENWEATHER_API_KEY);
+  url.searchParams.set('units', 'metric'); // Para obtener temperaturas en Celsius
+  url.searchParams.set('lang', 'es'); // Para descripciones en español
 
   const resp = await fetch(url);
   if (!resp.ok) {
-    throw new Error(`Calendarific error ${resp.status}`);
+    throw new Error(`OpenWeatherMap error ${resp.status}`);
   }
   return resp.json();
 }
@@ -50,21 +72,37 @@ const servidor = http.createServer((req, res) => {
     return;
   }
 
-  if (req.method === 'GET' && url.pathname === '/holidays') {
-    const country = url.searchParams.get('country') || 'US';
-    const year = url.searchParams.get('year') || new Date().getFullYear();
+  if (req.method === 'GET' && url.pathname === '/weather') {
+    const lat = parseFloat(url.searchParams.get('lat')) || 40.4165; // Madrid por defecto
+    const lon = parseFloat(url.searchParams.get('lon')) || -3.7026; // Madrid por defecto
+    const exclude = url.searchParams.get('exclude') || 'minutely,hourly';
 
-    fetchHolidays(country, year)
+    fetchWeather(lat, lon, exclude)
       .then(data => {
-        const holidays = (data.response?.holidays || []).map(holiday => ({
-          nombre: holiday.name,
-          fecha: holiday.date.iso,
-          descripcion: holiday.description,
-          tipo: holiday.type
-        }));
+        const weather = {
+          ubicacion: {
+            latitud: lat,
+            longitud: lon
+          },
+          actual: {
+            temperatura: data.current.temp,
+            sensacion_termica: data.current.feels_like,
+            humedad: data.current.humidity,
+            descripcion: data.current.weather[0].description,
+            icono: data.current.weather[0].icon
+          },
+          pronostico: data.daily.slice(0, 7).map(day => ({
+            fecha: new Date(day.dt * 1000).toISOString().split('T')[0],
+            temperatura_max: day.temp.max,
+            temperatura_min: day.temp.min,
+            descripcion: day.weather[0].description,
+            icono: day.weather[0].icon,
+            probabilidad_lluvia: day.pop * 100
+          }))
+        };
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ country, year, holidays }));
+        res.end(JSON.stringify(weather));
       })
       .catch(error => {
         res.writeHead(500, { 'Content-Type': 'application/json' });
