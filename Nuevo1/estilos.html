@@ -1,0 +1,64 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Mi artista favorito</title>
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+   <div id="contenedor">
+     <div class="elemento"> Sección 1</div>
+     <div class="elemento"> Sección 2</div>
+      
+   </div>
+   <div id="encabezado"></div>
+   <button type="button" id="titulo" onclick="obtenerJSONArtist('Luis+Miguel')">Luis Miguel</button>
+   <button class="button" id="titulo" onclick="obtenerJSONArtist('coldplay')">Coldplay</button>
+  
+  <style >
+    
+   
+
+  </style>
+   
+   
+
+  
+
+  
+<script >
+// Clase 4 #Java script
+      let t=1986;
+      const c=3.28;
+
+      console.log("lols")
+      let p={"titulo":"Llano en llamas","autor":"Juan Rulfo"}
+      
+      async function obtenerJSONArtist(nombreArtista) {
+        document.getElementById("encabezado").innerHTML = "";
+        const respuesta = await fetch('https://www.theaudiodb.com/api/v1/json/123/search.php?s=' + nombreArtista);
+        const datos = await respuesta.json();
+        console.log(datos);
+
+        let a = document.createElement("p");
+        a.textContent=datos.artists[0].strBiographyES;
+        a.setAttribute("style", "color: red");
+        document.getElementById("encabezado").appendChild(a);
+
+        let imglink = datos.artists[0].strArtistThumb;
+        let i = document.createElement("img");
+        i.setAttribute("src", imglink);
+        
+        document.getElementById("encabezado").appendChild(i);
+      }
+</script>
+
+
+
+</body>
+</html> obternerJSON();
+</script>
+
+
+
+</body>
+</html>
